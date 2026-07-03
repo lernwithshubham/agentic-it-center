@@ -1,5 +1,5 @@
 # 🏢 Autonomous Enterprise IT Operations Center
-**An Enterprise-Grade Multi-Agent Swarm powered by Agno v2.0+, Model Context Protocol (MCP), Agentic RAG, and Human-in-the-Loop (HITL) Governance.**
+**An Enterprise-Grade Multi-Agent Swarm powered by Agno, Model Context Protocol (MCP), Agentic RAG, and Human-in-the-Loop (HITL) Governance.**
 
 ---
 
@@ -142,8 +142,3 @@ A few useful code references:
 
 Contributions are welcome. Please open issues or pull requests for bug fixes, improvements, or documentation updates.
 
----
-
-## License
-
-This project is provided under the MIT License. See the LICENSE file for details.
