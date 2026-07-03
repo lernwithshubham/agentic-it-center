@@ -4,9 +4,9 @@
 ---
 
 ## 📖 Overview
-In modern enterprise environments, IT support tickets rarely live in a single system. Diagnosing an issue requires checking corporate identity directories, reading local endpoint crash logs, searching incident history, and consulting knowledge bases.
+In modern enterprise environments, IT support tickets rarely live in a single system. Diagnosing an issue requires checking corporate identity directories, reading local endpoint crash logs, searching runbooks, and sometimes sending official notifications.
 
-This repository demonstrates a **Multi-Agent Supervisor Swarm**: five specialized AI agents that collaborate autonomously to investigate issues, gather verification data, and recommend or take actions under HITL governance.
+This repository demonstrates a **Multi-Agent Supervisor Swarm**: five specialized AI agents that collaborate autonomously to investigate issues, gather verification data, and recommend or take actions (with optional human approval for sensitive steps).
 
 ---
 
@@ -44,10 +44,10 @@ graph TD
 | Agent Name | Primary Role | Underlying Technology | Data Source |
 |---|---:|---|---|
 | Supervisor Team | Orchestrates workflows, delegates tasks, synthesizes findings | Agno Team ReAct Engine | SQLite memory, runtime context |
-| Identity Specialist | Query corporate identity, validate user contexts | MCP / SQL adapters | active_directory.db |
-| Device Diagnostics Specialist | Collect & parse endpoint logs, run diagnostics | MCP / filesystem adapters | /stage_data/logs/ |
-| Incident Historian | Find prior incidents and timelines | MCP / SQL adapters | incident_history.db |
-| Knowledge Specialist | Vector search over runbooks & KB | Agentic RAG, LanceDB | LanceDB Vector Store |
+| Identity Specialist | Query corporate identity, validate user contexts | MCP / SQL adapters | stage_data/active_directory.db |
+| Device Diagnostics Specialist | Collect & parse endpoint logs, run diagnostics | MCP / filesystem adapters | stage_data/logs/ |
+| Incident Historian | Find prior incidents and timelines | MCP / SQL adapters | stage_data/incident_history.db |
+| Knowledge Specialist | Vector search over runbooks & KB | Agentic RAG, LanceDB | stage_data/lancedb_store |
 | Communication Specialist | Draft and send notifications | SMTP bridge with HITL approval | SMTP (optional live dispatch) |
 
 ---
@@ -102,27 +102,39 @@ export SMTP_SENDER_EMAIL="your_email@gmail.com"
 export SMTP_APP_PASSWORD="your_16_digit_app_password"
 ```
 
-4. Bootstrap the enterprise environment
+4. Bootstrap the enterprise environment (creates SQLite DBs, logs, and runbooks)
 
-Run the automated setup script to create the SQLite databases, generate endpoint logs, write markdown runbooks, and initialize other demo artifacts. You should see a success message when bootstrap completes.
+The repository does not include scripts/bootstrap_demo.py. Instead run the provided setup script:
 
 ```bash
-python scripts/bootstrap_demo.py
+python setup_env.py
 ```
+
+This will generate:
+- stage_data/active_directory.db
+- stage_data/incident_history.db
+- stage_data/logs/vpn_connection_error.log
+- stage_data/runbooks/vpn_policy.md
 
 5. Run the AgentOS server (local)
 
+Start the production example runtime directly with:
+
 ```bash
-python -m uvicorn main:app --host 0.0.0.0 --port 7777
+python production_it_center.py
 ```
 
-You should see the AgentOS banner and Uvicorn reporting http://localhost:7777.
+The script boots AgentOS and serves the IT Operations Center runtime on port 7777 (it prints a startup banner). Note: the example uses Agno's MCP stdio pipelines; the production script calls agent_os.serve(..., reload=False) which is required for those pipelines to remain stable.
 
 ---
 
 ## 🎮 Live Walkthrough & Testing
 
-Once the server is running you can interact with the control plane UI or use provided CLI/demo scripts to exercise the multi-agent workflows. The HITL approval gate will intercept any actions that would send real emails unless SMTP credentials are provided and approval is granted.
+Once the server is running you can interact with the control plane UI or use provided code paths to exercise the multi-agent workflows. The HITL approval gate will intercept any actions that require explicit human confirmation (for example: sending a real SMTP email).
+
+A few useful code references:
+- setup_env.py — creates demo databases, logs, and markdown runbooks.
+- production_it_center.py — defines agents, MCP connectors, the Team supervisor, and boots AgentOS.
 
 ---
 
